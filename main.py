@@ -39,11 +39,9 @@ import zipfile
 import shutil
 import ffmpeg
 import unicodedata
+from yt_dlp import YoutubeDL
 
-import re
-import unicodedata
 
-import re
 
 def clean_line(text: str) -> str:
     # Normalize spacing
