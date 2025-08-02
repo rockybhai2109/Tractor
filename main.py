@@ -799,7 +799,7 @@ async def txt_handler(bot: Client, m: Message):
     sender_id = str(m.from_user.id if m.from_user else m.sender_chat.id if m.sender_chat else None)
 
     # Check if the sender is the owner, or in AUTH_USERS, or in CHANNELS
-    if sender_id != OWNER_ID and sender_id not in AUTH_USERS and sender_id not in CHANNELS:
+    if sender_id != OWNER and sender_id not in AUTH_USERS and sender_id not in CHANNELS:
         await m.reply_text("❌ You are not authorized to use this command.\nOnly my Boss or Allowed Channels can do this 😌")
         return
 
