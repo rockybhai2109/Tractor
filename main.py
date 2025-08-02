@@ -1598,7 +1598,7 @@ def notify_owner():
     requests.post(url, data=data)
 
 if __name__ == "__main__":
-    reset_and_set_commands()
+    
     notify_owner() 
 
 
