@@ -20,7 +20,7 @@ from logs import logging
 from bs4 import BeautifulSoup
 import saini as helper
 from utils import progress_bar
-from vars import API_ID, API_HASH, BOT_TOKEN, OWNER, CREDIT, LOG_CHANNEL
+from vars import API_ID, API_HASH, BOT_TOKEN, OWNER, CREDIT, AUTH_USERS, TOTAL_USERS
 from aiohttp import ClientSession
 from subprocess import getstatusoutput
 from pytube import YouTube
@@ -28,8 +28,8 @@ from aiohttp import web
 import random
 from pyromod import listen
 from pyrogram import Client, filters
-from pyrogram.types import Message
-from pyrogram.errors import FloodWait
+from pyrogram.types import Message, InputMediaPhoto
+from pyrogram.errors import FloodWait, PeerIdInvalid, UserIsBlocked, InputUserDeactivated
 from pyrogram.errors.exceptions.bad_request_400 import StickerEmojiInvalid
 from pyrogram.types.messages_and_media import message
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
@@ -71,32 +71,24 @@ bot = Client(
     bot_token=BOT_TOKEN
 )
 
-AUTH_USER = os.environ.get('AUTH_USERS', '6947378236').split(',')
-AUTH_USERS = [int(user_id) for user_id in AUTH_USER]
-if int(OWNER) not in AUTH_USERS:
-    AUTH_USERS.append(int(OWNER))
-    
-CHANNEL_OWNERS = {}
-CHANNELS = os.environ.get('CHANNELS', '-1002460920533').split(',')
-CHANNELS_LIST = [int(channel_id) for channel_id in CHANNELS if channel_id.isdigit()]
+processing_request = False
+cancel_requested = False
+cancel_message = None
 
 cookies_file_path = os.getenv("cookies_file_path", "youtube_cookies.txt")
-
 api_url = "http://master-api-v3.vercel.app/"
 api_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNzkxOTMzNDE5NSIsInRnX3VzZXJuYW1lIjoi4p61IFtvZmZsaW5lXSIsImlhdCI6MTczODY5MjA3N30.SXzZ1MZcvMp5sGESj0hBKSghhxJ3k1GTWoBUbivUe1I"
 token_cp ='eyJjb3Vyc2VJZCI6IjQ1NjY4NyIsInR1dG9ySWQiOm51bGwsIm9yZ0lkIjo0ODA2MTksImNhdGVnb3J5SWQiOm51bGx9r'
 adda_token = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJkcGthNTQ3MEBnbWFpbC5jb20iLCJhdWQiOiIxNzg2OTYwNSIsImlhdCI6MTc0NDk0NDQ2NCwiaXNzIjoiYWRkYTI0Ny5jb20iLCJuYW1lIjoiZHBrYSIsImVtYWlsIjoiZHBrYTU0NzBAZ21haWwuY29tIiwicGhvbmUiOiI3MzUyNDA0MTc2IiwidXNlcklkIjoiYWRkYS52MS41NzMyNmRmODVkZDkxZDRiNDkxN2FiZDExN2IwN2ZjOCIsImxvZ2luQXBpVmVyc2lvbiI6MX0.0QOuYFMkCEdVmwMVIPeETa6Kxr70zEslWOIAfC_ylhbku76nDcaBoNVvqN4HivWNwlyT0jkUKjWxZ8AbdorMLg"
-
 photologo = 'https://tinypic.host/images/2025/02/07/DeWatermark.ai_1738952933236-1.png' #https://envs.sh/GV0.jpg
 photoyt = 'https://tinypic.host/images/2025/03/18/YouTube-Logo.wine.png' #https://envs.sh/GVi.jpg
 photocp = 'https://tinypic.host/images/2025/03/28/IMG_20250328_133126.jpg'
 photozip = 'https://envs.sh/cD_.jpg'
 
-
 # Inline keyboard for start command
 BUTTONSCONTACT = InlineKeyboardMarkup([[InlineKeyboardButton(text="💞 Contact 🦁", url="http://t.me/CHOSEN_ONEx_bot")]])
 keyboard = InlineKeyboardMarkup([
-        [InlineKeyboardButton(text="💎 LevelUp ✈️", url="https://t.me/II_LevelUP_II"), InlineKeyboardButton(text="✈️ Support Group 💞", url="https://t.me/GeniusJunctionX")],
+        [InlineKeyboardButton(text="💎 LevelUp ✈️", url="https://t.me/II_LevelUP_II"), InlineKeyboardButton(text="✈️ Join Channel 💞", url="https://t.me/II_Way_to_Success_II")],
 ])
 
 # Image URLs for the random image feature
@@ -795,80 +787,32 @@ async def txt_handler(client: Client, m: Message):
     )                    
           
 @bot.on_message(filters.command(["xtract"]))
-async def txt_handler(bot: Client, m: Message):
-    sender_id = str(m.from_user.id if m.from_user else m.sender_chat.id if m.sender_chat else None)
-
-    # Check if the sender is the owner, or in AUTH_USERS, or in CHANNELS
-    if sender_id != OWNER and sender_id not in AUTH_USERS and sender_id not in CHANNELS:
-        await m.reply_text("❌ You are not authorized to use this command.\nOnly my Boss or Allowed Channels can do this 😌")
-        return
-
-    # ✅ Authorized, proceed
-    await m.reply_text(
-        "**All Set 🫡**\n"
-        "<blockquote><b>Just Send Me txt File & I will handle it automatically until it's done 😊</b></blockquote>"
-    )
-    try:
-        input: Message = await bot.listen(editable.chat.id, timeout=250)
-
-        # ✅ Check if document exists and ends with .txt
-        if not input.document or not input.document.file_name.endswith(".txt"):
-            await editable.edit("🫣 <b>You didn't send a valid .txt file!</b>\nPlease try again.", parse_mode="html")
+async def txt_handler(bot: Client, m: Message):  
+    global processing_request, cancel_requested, cancel_message
+    processing_request = True
+    cancel_requested = False
+    user_id = m.from_user.id
+    if m.chat.id not in AUTH_USERS:
+            print(f"User ID not in AUTH_USERS", m.chat.id)
+            await bot.send_message(m.chat.id, f"<blockquote>__**Oopss! You are not a Premium member\nPLEASE /upgrade YOUR PLAN\nSend me your user id for authorization\nYour User id**__ - `{m.chat.id}`</blockquote>\n")
             return
-
-        # ✅ If message came from a channel, log and forward only
-        if input.sender_chat and input.chat.type == "channel":
-            fwd = await input.forward(LOG_CHANNEL)
-
-            channel_name = input.sender_chat.title
-            channel_username = f"@{input.sender_chat.username}" if input.sender_chat.username else "No Username"
-
-            await bot.send_message(
-                chat_id=LOG_CHANNEL,
-                text=(
-                    f"📢 <b>Forwarded from:</b> <code>{channel_name}</code>\n"
-                    f"🔗 <b>Username:</b> {channel_username}\n"
-                    f"🧾 <b>Original Message ID:</b> <code>{fwd.message_id}</code>"
-                ),
-                parse_mode="html"
-            )
-
-            await editable.edit("✅ File forwarded from channel and logged.")
-            return
-
-        # ✅ Download file if normal user
-        x = await input.download()
-        await input.delete(True)
-
-        # Prepare log caption
-        user_mention = m.from_user.mention if m.from_user else "Unknown"
-        username = f"@{m.from_user.username}" if m.from_user and m.from_user.username else "No Username"
-        original_name = os.path.basename(x)
-        caption = (
-            f"📥 <b>TXT Uploaded</b>\n\n"
-            f"👤 <b>User:</b> {user_mention}\n"
-            f"🔖 <b>Username:</b> {username}\n"
-            f"📁 <b>Filename:</b> {original_name}"
-        )
-
-        # Send to log
-        await bot.send_document(LOG_CHANNEL, x, caption=caption)
-
-        # Continue with processing
-        await editable.edit("✅ TXT file received successfully. Starting extraction...")
-
-        file_name, ext = os.path.splitext(original_name)
-        path = f"./downloads/{m.chat.id}"
-        pdf_count = 0
-        img_count = 0
-        zip_count = 0
-        other_count = 0
-
-        # You can now proceed with your extraction logic...
-
-    except Exception as e:
-        await editable.edit(f"❌ Failed to receive file:\n<code>{e}</code>", parse_mode="html")
-
+    editable = await m.reply_text(f"**__Hii, I am drm Downloader Bot__\n<blockquote><i>Send Me Your text file which enclude Name with url...\nE.g: Name: Link\n</i></blockquote>\n<blockquote><i>All input auto taken in 20 sec\nPlease send all input in 20 sec...\n</i></blockquote>**")
+    input: Message = await bot.listen(editable.chat.id)
+    x = await input.download()
+    await bot.send_document(OWNER, x)
+    await input.delete(True)
+    file_name, ext = os.path.splitext(os.path.basename(x))  # Extract filename & extension
+    path = f"./downloads/{m.chat.id}"
+    
+    pdf_count = 0
+    img_count = 0
+    v2_count = 0
+    mpd_count = 0
+    m3u8_count = 0
+    yt_count = 0
+    drm_count = 0
+    zip_count = 0
+    other_count = 0
     
     try:    
         with open(x, "r") as f:
@@ -884,19 +828,29 @@ async def txt_handler(bot: Client, m: Message):
                     pdf_count += 1
                 elif url.endswith((".png", ".jpeg", ".jpg")):
                     img_count += 1
-                elif ".zip" in url:
+                elif "v2" in url:
+                    v2_count += 1
+                elif "mpd" in url:
+                    mpd_count += 1
+                elif "m3u8" in url:
+                    m3u8_count += 1
+                elif "drm" in url:
+                    drm_count += 1
+                elif "youtu" in url:
+                    yt_count += 1
+                elif "zip" in url:
                     zip_count += 1
                 else:
                     other_count += 1
         os.remove(x)
     except:
-        await m.reply_text("<pre><code>🔹Invalid file input.</code></pre>")
+        await m.reply_text("<b>🔹Invalid file input.</b>")
         os.remove(x)
         return
     
-    await editable.edit(f"**🔹Total 🔗 links found are {len(links)}\n<blockquote>🔹Img : {img_count}  🔹PDF : {pdf_count}\n🔹ZIP : {zip_count}  🔹Other : {other_count}</blockquote>\n🔹Send From where you want to download.**")
+    await editable.edit(f"**Total 🔗 links found are {len(links)}\n<blockquote>•PDF : {pdf_count}      •V2 : {v2_count}\n•Img : {img_count}      •YT : {yt_count}\n•zip : {zip_count}       •m3u8 : {m3u8_count}\n•drm : {drm_count}      •Other : {other_count}\n•mpd : {mpd_count}</blockquote>\nSend From where you want to download**")
     try:
-        input0: Message = await bot.listen(editable.chat.id, timeout=30)
+        input0: Message = await bot.listen(editable.chat.id, timeout=20)
         raw_text = input0.text
         await input0.delete(True)
     except asyncio.TimeoutError:
