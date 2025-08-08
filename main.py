@@ -931,7 +931,7 @@ async def txt_handler(bot: Client, m: Message):
         raw_text4 = '/d'
 
     if raw_text4 == '/d':
-        cwtoken = 'eyJhbGciOiJIUzM4NCIsInR5cCI6IkpXVCJ9.eyJpZCI6MTU1NDQ1OTczLCJvcmdJZCI6NzM1NTQ4LCJ0eXBlIjoxLCJtb2JpbGUiOiI5MTk3NTAwMjQ5MzciLCJuYW1lIjoicmFodWwga3VtYXIgdGl3YXJpIiwiZW1haWwiOiJlbGVjdHJhMjAzMjhAMmNsLnZlcnRleGl1bS5uZXQiLCJpc0ZpcnN0TG9naW4iOnRydWUsImRlZmF1bHRMYW5ndWFnZSI6IkVOIiwiY291bnRyeUNvZGUiOiJJTiIsImlzSW50ZXJuYXRpb25hbCI6MCwiaXNEaXkiOnRydWUsImxvZ2luVmlhIjoiT3RwIiwiZmluZ2VycHJpbnRJZCI6IjQ3MGVmOGU0YjllMjQzYWI4ZTQ2NTA5NmJjOTI4YjQ1IiwiaWF0IjoxNzUxNzE1NTM0LCJleHAiOjE3NTIzMjAzMzR9.aLpqyasMSgv87cyDeYVgcfIxx8nost2GRMOUisafyxcSmhHixOoP-lhceOdtt2VjDtGi8LdnY7Vd9Kpaf499P-y3-godolS_7ixClcYOnWxe2nSVD5C9c5HkyisrHTvf6NFAuQC_FD3TzByldbPVKK0ag1UnHRavX8MtttjshnRhv5gJs5DQWj4Ir_dkMcJ4JaVZO3z8j0OxVLjnmuaRBujT-1pavsr1CCzjTbAcBvdjUfvzEhObWfA1-Vl5Y4bUgRHhl1U-0hne4-5fF0aouyu71Y6W0eg'
+        cwtoken = 'eyJhbGciOiJIUzM4NCIsInR5cCI6IkpXVCJ9.eyJpZCI6MTU5MDQ1NjU4LCJvcmdJZCI6NjMwNTQsInR5cGUiOjEsIm1vYmlsZSI6IjkxOTg2NTE4NDcxMSIsIm5hbWUiOiJqYXN3YW50IHNpbmdoIiwiZW1haWwiOiJ2ZXJvbmlxdWU0NzA5YThAbzYudW5kZXJzZWFnb2xmLmNvbSIsImlzRmlyc3RMb2dpbiI6dHJ1ZSwiZGVmYXVsdExhbmd1YWdlIjoiRU4iLCJjb3VudHJ5Q29kZSI6IklOIiwiaXNJbnRlcm5hdGlvbmFsIjowLCJpc0RpeSI6dHJ1ZSwibG9naW5WaWEiOiJPdHAiLCJmaW5nZXJwcmludElkIjoiZDUwNjZlMDZlZjMzNDlhNzg4YWE2ZDI2MmU5ZWJkNzciLCJpYXQiOjE3NTQ2NTU1MzUsImV4cCI6MTc1NTI2MDMzNX0.OHFhW_NFPXxYFhhT1Uvy8HODDfL-D9-MU_KPsuLmfvF3lsWSIrua4D97L7tMzoa6'
         cptoken = "cptoken"
         pwtoken = "pwtoken"
     else:
@@ -1009,12 +1009,12 @@ async def txt_handler(bot: Client, m: Message):
                # url = response.text.strip()
                 url = response.json()['url']  
 
-           # elif "classplusapp.com/drm/" in url:
-           #     url = f"https://drmapijion-botupdatevip.vercel.app/api?url={url}&token={raw_text4}"
-                #url = 'https://dragoapi.vercel.app/classplus?link=' + url
-         #       mpd, keys = helper.get_mps_and_keys(url)
-         #       url = mpd
-        #        keys_string = " ".join([f"--key {key}" for key in keys])
+            elif "classplusapp.com/drm/" in url:
+                url = f"https://drmapijion-botupdatevip.vercel.app/api?url={url}&token={raw_text4}"
+                url = 'https://dragoapi.vercel.app/classplus?link=' + url
+                mpd, keys = helper.get_mps_and_keys(url)
+                url = mpd
+                keys_string = " ".join([f"--key {key}" for key in keys])
 
             elif "tencdn.classplusapp" in url:
                 headers = {'host': 'api.classplusapp.com', 'x-access-token': f'{raw_text4}', 'accept-language': 'EN', 'api-version': '18', 'app-version': '1.4.73.2', 'build-number': '35', 'connection': 'Keep-Alive', 'content-type': 'application/json', 'device-details': 'Xiaomi_Redmi 7_SDK-32', 'device-id': 'c28d3cb16bbdac01', 'region': 'IN', 'user-agent': 'Mobile-Android', 'webengage-luid': '00000187-6fe4-5d41-a530-26186858be4c', 'accept-encoding': 'gzip'}
