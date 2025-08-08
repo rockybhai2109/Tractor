@@ -806,7 +806,22 @@ async def txt_handler(client: Client, m: Message):
         f"> ➠ 𝐌𝐚𝐝𝐞 𝐁𝐲 : {CREDIT} 💻\n"
         )
      )   
-    
+
+
+def get_mps_and_keys3(api_url):
+    response = requests.get(api_url)   
+    response_json = response.json()
+    mpd = response_json.get('url')
+    return mpd
+
+def get_mps_and_keys2(api_url):
+    response = requests.get(api_url) 
+    response_json = response.json()
+    mpd = response_json.get('mpd_url')
+    keys = response_json.get('keys')
+    return mpd, keys
+
+
 @bot.on_message(filters.command(["xtract"]) )
 async def txt_handler(bot: Client, m: Message):  
     if m.chat.id not in AUTH_USERS and m.chat.id not in CHANNELS_LIST:
@@ -998,7 +1013,7 @@ async def txt_handler(bot: Client, m: Message):
             elif "https://cpvod.testbook.com/" in url:
                 url = url.replace("https://cpvod.testbook.com/","https://media-cdn.classplusapp.com/drm/")
                 url = f"https://cpapi-rjbs-1l0p.onrender.com/extract_keys?url={url}@bots_updatee&user_id={7687410009}"
-                url = f"https://scammer-keys.vercel.app/api?url={url}&token={cptoken}&auth=@scammer_botxz1"
+             #   url = f"https://scammer-keys.vercel.app/api?url={url}&token={cptoken}&auth=@scammer_botxz1"
                 mpd, keys = helper.get_mps_and_keys(url)
                 url = mpd
                 keys_string = " ".join([f"--key {key}" for key in keys])
@@ -1011,7 +1026,7 @@ async def txt_handler(bot: Client, m: Message):
 
             elif "classplusapp.com/drm/" in url:
                 url = f"https://drmapijion-botupdatevip.vercel.app/api?url={url}&token={raw_text4}"
-                url = 'https://dragoapi.vercel.app/classplus?link=' + url
+                #url = 'https://dragoapi.vercel.app/classplus?link=' + url
                 mpd, keys = helper.get_mps_and_keys(url)
                 url = mpd
                 keys_string = " ".join([f"--key {key}" for key in keys])
